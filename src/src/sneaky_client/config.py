@@ -10,6 +10,7 @@ class Config:
     phone_number: str
     encryption_key: str
 
+
 def get_config() -> Config:
     with open("/config/simpleclient/config.yaml") as f:
         return Config(**yaml.safe_load(f))
