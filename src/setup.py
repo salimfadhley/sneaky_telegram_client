@@ -9,7 +9,7 @@ except IOError:
     REQUIREMENTS = []
 
 setuptools.setup(
-    name="logger-bot",  # Replace with your own username
+    name="sneaky-client",  # Replace with your own username
     version="0.0.1",
     author="Salim Fadhley",
     author_email="salimfadhley@gmaio.com",
@@ -24,7 +24,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.9",
+    python_requires=">=3.8",
     install_requires=REQUIREMENTS,
     entry_points={"console_scripts": ["run_client=sneaky_client.start:start"]},
 )

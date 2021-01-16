@@ -5,5 +5,6 @@ COPY src/requirements.txt /tmp
 RUN pip install -r /tmp/requirements.txt
 COPY src src
 WORKDIR /src
-RUN ls
-RUN pip install -e .
+RUN python setup.py develop
+RUN pip list
+
