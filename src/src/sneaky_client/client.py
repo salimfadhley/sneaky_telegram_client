@@ -11,6 +11,7 @@ import os
 from sneaky_client.config import get_config
 from telethon import TelegramClient
 
+
 @dataclass
 class TelegramHandler:
     client: TelegramClient
@@ -20,11 +21,13 @@ class TelegramHandler:
         if isinstance(update, UpdateNewChannelMessage):
             store(update)
 
-def get_session_path()->str:
+
+def get_session_path() -> str:
     session_dir = os.environ.get("SESSION_LOCATION")
     session_path = os.path.join(session_dir, "sneaky.session")
     log.info(f"Saving session to {session_path}")
     return session_path
+
 
 def run_client():
     config = get_config()
@@ -37,6 +40,5 @@ def run_client():
         client.add_event_handler(tg_handler.handler)
 
         # Run the client until Ctrl+C is pressed, or the client disconnects
-        print('(Press Ctrl+C to stop this)')
+        print("(Press Ctrl+C to stop this)")
         client.run_until_disconnected()
-
