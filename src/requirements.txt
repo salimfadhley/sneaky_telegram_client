@@ -6,3 +6,4 @@ pyyaml
 telethon
 flask
 elasticsearch
+unidecode

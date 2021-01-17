@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass
 
-from telethon.tl.types import UpdateNewChannelMessage
+from telethon.tl.types import UpdateNewChannelMessage, Channel, User
 
 from sneaky_client.storage import store
 
@@ -19,7 +19,10 @@ class TelegramHandler:
     # This is our update handler. It is called when a new update arrives.
     async def handler(self, update):
         if isinstance(update, UpdateNewChannelMessage):
-            store(update)
+            channel: Channel = await self.client.get_entity(update.message.chat_id)
+            user: User = await self.client.get_entity(update.message.sender_id)
+
+            store(update=update, user=user, channel=channel)
 
 
 def get_session_path() -> str:
