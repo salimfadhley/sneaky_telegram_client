@@ -2,7 +2,8 @@ version: '3.7'
 
 services:
   client:
-    image: "salimfadhley/freedom-bot:latest"
+    container_name: "sneaky_telegram_client"
+    image: "salimfadhley/sneaky-telegram-client:latest"
     build:
       context: .
       target: py
@@ -25,6 +26,7 @@ services:
       - internal
 
   python:
+    container_name: "python"
     image: "salimfadhley/freedom-bot:latest"
     build:
       context: .
