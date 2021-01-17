@@ -3,6 +3,6 @@ boto3
 boto3-type-annotations
 pytest
 pyyaml
-python-telegram
+telethon
 flask
-
+elasticsearch

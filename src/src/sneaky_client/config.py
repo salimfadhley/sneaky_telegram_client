@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
 import yaml
 
@@ -12,8 +13,11 @@ class Config:
     encryption_key: str
 
 
+def get_confg_file_path()->Path:
+    return Path(os.environ.get("CONFIG_FILE_PATH", "~/.config/simpleclient/config.yaml")).expanduser()
+
 def get_config() -> Config:
-    with open(os.path.expanduser("~/.config/simpleclient/config.yaml")) as f:
+    with get_confg_file_path().open() as f:
         config = yaml.safe_load(f)
         assert isinstance(config["app_api_id"], int)
         assert isinstance(config["app_api_hash"], str)

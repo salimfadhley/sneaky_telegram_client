@@ -2,24 +2,19 @@ import itertools
 import logging
 import os
 from pathlib import Path
-from typing import Any, Mapping
+import elasticsearch
 
 import yaml
+from telethon.tl.types import UpdateUserStatus
 
 log = logging.getLogger(__name__)
 
 
-def get_storage_path()->Path:
-    p = Path(os.environ["STORAGE_LOCATION"])
-    assert p.exists(), f"Storage location ${p} does not exist"
-    assert p.is_dir(), f"Storage location ${p} is not a directory/"
-    return p
+def get_elasticsearch()->elasticsearch.Elasticsearch:
+    return elasticsearch.Elasticsearch([{'host': 'elastic', 'port': 9200}])
 
-counter = itertools.count()
-
-def store(obj:Mapping[str,Any])->None:
-    count = next(counter)
-    storage_path = get_storage_path().joinpath(f"{count}.yaml")
-    with storage_path.open(mode="w") as f:
-        log.info(f"Dunping {storage_path}")
-        yaml.dump(obj, f)
+def store(obj:UpdateUserStatus)->None:
+    es = get_elasticsearch()
+    update_as_dict = obj.to_dict()
+    log.info(f"Saving update:\n{update_as_dict}")
+    es.index(index='nutters', doc_type='update', body=update_as_dict)
