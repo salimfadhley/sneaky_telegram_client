@@ -1,7 +1,6 @@
 name: Build
 on:
-  release:
-    types: [created]
+  push:
 jobs:
   deploy:
     runs-on: ubuntu-latest
