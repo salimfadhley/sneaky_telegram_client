@@ -25,7 +25,7 @@ Run the app interactively:
 ```shell
 docker-comose run client
 ```
-Provide any login credentials neccecary, and then quit the app by pressing CTRL-C
+Provide any login credentials necessary, and then quit the app by pressing CTRL-C
 
 Run the app normally:
 ```shell
