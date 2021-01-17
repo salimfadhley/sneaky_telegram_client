@@ -7,4 +7,3 @@ COPY src src
 WORKDIR /src
 RUN python setup.py develop
 RUN pip list
-

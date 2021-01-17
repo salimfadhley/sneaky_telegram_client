@@ -1,4 +1,7 @@
 # Created by .ignore support plugin (hsz.mobi)
 .environment
 *.egg-info
-
+venv
+__pycache__
+.idea/workspace.xml
+.idea/dataSources

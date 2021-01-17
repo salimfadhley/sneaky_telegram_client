@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+from typing import Optional
 
 from telethon.tl.types import UpdateNewChannelMessage, Channel, User
 
@@ -20,13 +21,18 @@ class TelegramHandler:
     async def handler(self, update):
         if isinstance(update, UpdateNewChannelMessage):
             channel: Channel = await self.client.get_entity(update.message.chat_id)
-            user: User = await self.client.get_entity(update.message.sender_id)
 
-            store(update=update, user=user, channel=channel)
+            user = await self.client.get_entity(update.message.sender_id)
+
+            store(
+                update=update,
+                user=user if isinstance(user, User) else None,
+                channel=channel,
+            )
 
 
 def get_session_path() -> str:
-    session_dir = os.environ.get("SESSION_LOCATION")
+    session_dir = os.environ["SESSION_LOCATION"]
     session_path = os.path.join(session_dir, "sneaky.session")
     log.info(f"Saving session to {session_path}")
     return session_path

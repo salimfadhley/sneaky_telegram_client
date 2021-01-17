@@ -36,24 +36,6 @@ class ChannelDigest:
 
 
 @dataclass
-class MediaDigest:
-    id: int
-    type: str
-    title: str
-    description: str
-    display_url: str
-    url: str
-
-
-@dataclass
-class MessageDigest:
-    date: datetime.datetime
-    message: str
-    media: MediaDigest
-    id: int
-
-
-@dataclass
 class DocumentDigest:
     id: int
     access_hash: int
@@ -77,7 +59,7 @@ class WebPageDigest:
 class ContactDigest:
     phone_number: str
     first_name: str
-    last_nane: str
+    last_name: str
     user_id: int
 
 
@@ -89,10 +71,18 @@ class MediaDigest:
     document: Optional[DocumentDigest] = None
 
 
+@dataclass
+class MessageDigest:
+    date: datetime.datetime
+    message: str
+    media: MediaDigest
+    id: int
+
+
 def get_media_digest(media) -> MediaDigest:
     log.info(f"Got media: {media}")
     if not media:
-        return None
+        return MediaDigest()
     elif isinstance(media, MessageMediaDocument):
         return MediaDigest(
             document=DocumentDigest(
@@ -121,32 +111,38 @@ def get_media_digest(media) -> MediaDigest:
             )
         )
     else:
-        log.info(f"Cannot handle {media.__class__}: {pprint.pprint(media)}")
+        log.info(f"Cannot handle {media.__class__}: {pprint.pformat(media)}")
         return MediaDigest()
 
 
 @dataclass
 class UpdateDigest:
-    user: UserDigest
+    user: Optional[UserDigest]
     channel: ChannelDigest
     message: MessageDigest
     id: int
 
 
 def create_digest(
-    update: UpdateNewChannelMessage, user: User, channel: Channel
+    update: UpdateNewChannelMessage, user: Optional[User], channel: Channel
 ) -> UpdateDigest:
     channel_digest = ChannelDigest(
-        id=channel.id, name=channel.title, access_hash=channel.access_hash,
+        id=channel.id,
+        name=channel.title,
+        access_hash=channel.access_hash,
     )
 
-    user_digest = UserDigest(
-        id=user.id,
-        name=user.username,
-        first_name=user.first_name,
-        last_name=user.last_name,
-        phone=user.phone,
-        access_hash=user.access_hash,
+    user_digest: Optional[UserDigest] = (
+        UserDigest(
+            id=user.id,
+            name=user.username,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            phone=user.phone,
+            access_hash=user.access_hash,
+        )
+        if user
+        else None
     )
 
     message_digest = MessageDigest(
@@ -156,7 +152,11 @@ def create_digest(
         date=update.message.date,
     )
 
-    hashable_identifiers = (channel_digest.id, user_digest.id, message_digest.id)
+    hashable_identifiers = (
+        channel_digest.id,
+        user_digest.id if user_digest else None,
+        message_digest.id,
+    )
 
     update_digest = UpdateDigest(
         user=user_digest,

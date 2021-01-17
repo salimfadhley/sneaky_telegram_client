@@ -7,3 +7,4 @@ telethon
 flask
 elasticsearch
 unidecode
+pre-commit

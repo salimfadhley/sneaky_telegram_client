@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="fhdcaxvd" />
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_15" project-jdk-name="Remote Python 3.9.0 Docker Compose (python at [/home/sal/workspace/scf/sneaky_telegram_client/docker-compose.yaml])" project-jdk-type="Python SDK">
+    <output url="file://$PROJECT_DIR$/out" />
+  </component>
+</project>
