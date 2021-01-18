@@ -7,7 +7,7 @@ import elasticsearch
 
 from telethon.tl.types import UpdateNewChannelMessage, Channel, User
 
-from sneaky_client.message_digest import create_digest
+from sneaky_client.message_digest import create_digest, UpdateDigest
 
 log = logging.getLogger(__name__)
 
@@ -17,7 +17,10 @@ def get_elasticsearch() -> elasticsearch.Elasticsearch:
 
 
 def store(
-    update: UpdateNewChannelMessage, user: Optional[User], channel: Channel
+    update: UpdateNewChannelMessage,
+    user: Optional[User],
+    channel: Channel,
+    digest: UpdateDigest,
 ) -> None:
     es = get_elasticsearch()
     update_as_dict = update.to_dict()
@@ -33,8 +36,10 @@ def store(
     )
     if user:
         es.index(index="users", doc_type="user", id=user.id, body=user.to_dict())
+    else:
+        log.info("No user data available for this update.")
 
-    digest = create_digest(user=user, channel=channel, update=update)
     digest_as_dict = dataclasses.asdict(digest)
     log.info(f"Saving message: {pprint.pformat(digest_as_dict)}")
     es.index(index="digests", doc_type="digest", id=digest.id, body=digest_as_dict)
+    log.info(f"Finished saving #{update_id}")

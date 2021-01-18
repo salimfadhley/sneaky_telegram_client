@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import datetime
-from typing import Optional, Union
+from typing import Optional, List
 import pprint
 import logging
 
@@ -14,6 +14,8 @@ from telethon.tl.types import (
     MessageMediaPhoto,
     MessageMediaContact,
 )
+
+from sneaky_client.t_me_links import get_t_me_hashes
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +34,6 @@ class UserDigest:
 class ChannelDigest:
     id: int
     name: str
-    access_hash: int
 
 
 @dataclass
@@ -104,10 +105,10 @@ def get_media_digest(media) -> MediaDigest:
     elif isinstance(media, MessageMediaContact):
         return MediaDigest(
             contact=ContactDigest(
-                user_id=media.contact.user_id,
-                first_name=media.contact.first_name,
-                last_name=media.contact.last_name,
-                phone_number=media.contact.phone_number,
+                user_id=media.user_id,
+                first_name=media.first_name,
+                last_name=media.last_name,
+                phone_number=media.phone_number,
             )
         )
     else:
@@ -120,30 +121,27 @@ class UpdateDigest:
     user: Optional[UserDigest]
     channel: ChannelDigest
     message: MessageDigest
+    entities: List[str]
     id: int
+
+
+def get_user_digest(user: User) -> UserDigest:
+    return UserDigest(
+        id=user.id,
+        name=user.username,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        phone=user.phone,
+        access_hash=user.access_hash,
+    )
 
 
 def create_digest(
     update: UpdateNewChannelMessage, user: Optional[User], channel: Channel
 ) -> UpdateDigest:
-    channel_digest = ChannelDigest(
-        id=channel.id,
-        name=channel.title,
-        access_hash=channel.access_hash,
-    )
+    channel_digest = ChannelDigest(id=channel.id, name=channel.title)
 
-    user_digest: Optional[UserDigest] = (
-        UserDigest(
-            id=user.id,
-            name=user.username,
-            first_name=user.first_name,
-            last_name=user.last_name,
-            phone=user.phone,
-            access_hash=user.access_hash,
-        )
-        if user
-        else None
-    )
+    user_digest: Optional[UserDigest] = get_user_digest(user) if user else None
 
     message_digest = MessageDigest(
         id=update.message.id,
@@ -158,11 +156,16 @@ def create_digest(
         message_digest.id,
     )
 
+    entities: List[str] = (
+        list(get_t_me_hashes(message_digest.message)) if message_digest.message else []
+    )
+
     update_digest = UpdateDigest(
         user=user_digest,
         channel=channel_digest,
         message=message_digest,
         id=hash(hashable_identifiers),
+        entities=entities,
     )
 
     return update_digest

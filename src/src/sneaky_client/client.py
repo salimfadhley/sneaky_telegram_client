@@ -4,6 +4,7 @@ from typing import Optional
 
 from telethon.tl.types import UpdateNewChannelMessage, Channel, User
 
+from sneaky_client.message_digest import create_digest
 from sneaky_client.storage import store
 
 log = logging.getLogger(__name__)
@@ -21,14 +22,18 @@ class TelegramHandler:
     async def handler(self, update):
         if isinstance(update, UpdateNewChannelMessage):
             channel: Channel = await self.client.get_entity(update.message.chat_id)
+            _user = await self.client.get_entity(update.message.sender_id)
+            user = _user if isinstance(_user, User) else None
 
-            user = await self.client.get_entity(update.message.sender_id)
-
+            digest = create_digest(channel=channel, update=update, user=user)
             store(
                 update=update,
                 user=user if isinstance(user, User) else None,
                 channel=channel,
+                digest=digest,
             )
+        else:
+            log.info(f"Ignoring update: {update}")
 
 
 def get_session_path() -> str:
