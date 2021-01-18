@@ -29,19 +29,27 @@ class TelegramHandler:
         else:
             log.info(f"Ignoring update: {update}")
 
-    async def subscribe_to_entity(self, entity):
+    async def join_group(self, entity):
+        log.info(f"Trying to join group/chat/channel: {entity}...")
         try:
-            subscription_result = await self.client(ImportChatInviteRequest(entity))
-        except InviteHashInvalidError:
             log.info(f"{entity} is not a hash, trying to subscribe as a group")
             channel: Channel = await self.client.get_entity(entity)
-            subscription_result = await self.client(JoinChannelRequest(channel))  # type: ignore
-        log.info(f"Subscription result for {entity} is {subscription_result}")
-        return subscription_result
+            return await self.client(JoinChannelRequest(channel))  # type: ignore
+        except ValueError as e:
+            log.info(f"{entity} is not a username, it might be a hash...")
+            try:
+                return await self.client(ImportChatInviteRequest(entity))
+            except InviteHashInvalidError:
+                log.warning(f"Could not subscribe to {entity}")
 
     async def handle_update_new_channel_message(self, update: UpdateNewChannelMessage):
         channel: Channel = await self.client.get_entity(update.message.chat_id)
-        _user = await self.client.get_entity(update.message.sender_id)
+
+        try:
+            _user = await self.client.get_entity(update.message.sender_id)
+        except ValueError:
+            _user = None
+
         user = _user if isinstance(_user, User) else None
 
         digest = create_digest(channel=channel, update=update, user=user)
@@ -53,7 +61,9 @@ class TelegramHandler:
         )
 
         for entity in digest.entities:
-            await self.subscribe_to_entity(entity)
+            await self.join_group(entity)
+
+        await self.client.send_read_acknowledge(entity=channel.id)
 
 
 def get_session_path() -> str:

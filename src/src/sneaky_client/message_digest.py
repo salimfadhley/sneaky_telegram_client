@@ -14,6 +14,7 @@ from telethon.tl.types import (
     MessageMediaPhoto,
     MessageMediaContact,
     WebPagePending,
+    WebPage,
 )
 
 from sneaky_client.t_me_links import get_t_me_hashes
@@ -99,13 +100,12 @@ def get_media_digest(media) -> MediaDigest:
                 id=media.webpage.id, title="Unknown", url=media.webpage.url
             )
         )
-    elif isinstance(media, MessageMediaWebPage):
+    elif isinstance(media, MessageMediaWebPage) and isinstance(media.webpage, WebPage):
         return MediaDigest(
             webpage=WebPageDigest(
                 id=media.webpage.id, title=media.webpage.title, url=media.webpage.url
             )
         )
-
     elif isinstance(media, MessageMediaPhoto):
         return MediaDigest(
             photo=PhotoDigest(id=media.photo.id, access_hash=media.photo.access_hash)

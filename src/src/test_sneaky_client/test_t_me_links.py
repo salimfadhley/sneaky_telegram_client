@@ -15,6 +15,8 @@ def test_extract1():
 
 
 def test_extract2():
-    input_text: str = "    https://t.me/joinchat/VGNrOwP_y0yQvAZs  "
+    input_text: str = (
+        "    https://t.me/joinchat/VGNrOwP_y0yQvAZs  https://t.me/ANRnews/27694 "
+    )
     result = list(get_t_me_hashes(input_text))
-    assert result == ["VGNrOwP_y0yQvAZs"]
+    assert result == ["VGNrOwP_y0yQvAZs", "ANRnews"]
