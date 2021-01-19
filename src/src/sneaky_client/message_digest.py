@@ -35,7 +35,10 @@ class UserDigest:
 @dataclass
 class ChannelDigest:
     id: int
-    name: str
+    title: str
+    username: str
+    megaroup: bool
+    call_active: bool
 
 
 @dataclass
@@ -147,7 +150,13 @@ def get_user_digest(user: User) -> UserDigest:
 def create_digest(
     update: UpdateNewChannelMessage, user: Optional[User], channel: Channel
 ) -> UpdateDigest:
-    channel_digest = ChannelDigest(id=channel.id, name=channel.title)
+    channel_digest = ChannelDigest(
+        id=channel.id,
+        title=channel.title,
+        username=channel.username,
+        megaroup=channel.megagroup,
+        call_active=channel.call_active,
+    )
 
     user_digest: Optional[UserDigest] = get_user_digest(user) if user else None
 
