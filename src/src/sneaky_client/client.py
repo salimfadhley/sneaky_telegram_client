@@ -1,8 +1,9 @@
+import functools
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
-from telethon.errors import InviteHashInvalidError
+from telethon.errors import InviteHashInvalidError, FloodWaitError
 from telethon.tl.functions.channels import JoinChannelRequest
 from telethon.tl.functions.messages import ImportChatInviteRequest
 from telethon.tl.types import UpdateNewChannelMessage, Channel, User, InputChannel
@@ -29,7 +30,13 @@ class TelegramHandler:
         else:
             log.info(f"Ignoring update: {update}")
 
+    @functools.lru_cache()
     async def join_group(self, entity):
+        """
+        This looks bizarre, but I'm using lru_cache
+        :param entity:
+        :return:
+        """
         log.info(f"Trying to join group/chat/channel: {entity}...")
         try:
             log.info(f"{entity} is not a hash, trying to subscribe as a group")
@@ -41,6 +48,8 @@ class TelegramHandler:
                 return await self.client(ImportChatInviteRequest(entity))
             except InviteHashInvalidError:
                 log.warning(f"Could not subscribe to {entity}")
+        except FloodWaitError:
+            log.warning("Wait more time.")
 
     async def handle_update_new_channel_message(self, update: UpdateNewChannelMessage):
         channel: Channel = await self.client.get_entity(update.message.chat_id)

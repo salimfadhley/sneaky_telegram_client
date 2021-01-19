@@ -1,3 +1,5 @@
+import pprint
+
 from telethon.tl.functions.channels import JoinChannelRequest
 from telethon.tl.functions.messages import ImportChatInviteRequest
 from telethon.tl.types import Channel
@@ -7,11 +9,12 @@ from sneaky_client.client import get_telegram_client
 
 def get_query(client):
     async def query():
-        channel: Channel = await client.get_entity("GreatAwakeningChannel")
-        result = await client(
-            JoinChannelRequest(await client.get_entity("GreatAwakeningChannel"))
-        )
+        result = await client.get_me()
         print(result)
+
+        dialogs = await client.get_dialogs()
+        for d in dialogs:
+            print(pprint.pprint(d))
 
     return query
 
