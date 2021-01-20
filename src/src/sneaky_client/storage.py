@@ -5,15 +5,23 @@ from typing import Optional
 
 import elasticsearch
 
-from telethon.tl.types import UpdateNewChannelMessage, Channel, User
+from telethon.tl.types import UpdateNewChannelMessage, Channel, User, Photo
 
 from sneaky_client.digest.digest import UpdateDigest
+from sneaky_client.digest.photo_digest import PhotoDigest
 
 log = logging.getLogger(__name__)
 
 
 def get_elasticsearch() -> elasticsearch.Elasticsearch:
     return elasticsearch.Elasticsearch([{"host": "elastic", "port": 9200}])
+
+
+def store_photo_record(photo: PhotoDigest):
+    es = get_elasticsearch()
+    es.index(
+        index="photos", doc_type="photo", id=photo.id, body=dataclasses.asdict(photo)
+    )
 
 
 def store(

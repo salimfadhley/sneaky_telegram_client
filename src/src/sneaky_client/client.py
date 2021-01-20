@@ -9,7 +9,8 @@ from telethon.tl.functions.messages import ImportChatInviteRequest
 from telethon.tl.types import UpdateNewChannelMessage, Channel, User, MessageMediaPhoto
 
 from sneaky_client.digest.digest import create_digest
-from sneaky_client.storage import store
+from sneaky_client.digest.photo_digest import PhotoDigest
+from sneaky_client.storage import store, store_photo_record
 
 log = logging.getLogger(__name__)
 
@@ -58,6 +59,13 @@ class TelegramHandler:
         if not os.path.exists(file_path):
             with open(file_path, "wb") as download_file:
                 await self.client.download_media(message=update.message, file=file_path)
+
+        photo_digest: PhotoDigest = PhotoDigest(
+            id=media.photo.id, access_hash=media.photo.access_hash
+        )
+
+        store_photo_record(photo=photo_digest)
+
         log.info(f"Saved photo: {file_path}, {os.path.getsize(file_path)} bytes")
 
     async def handle_update_new_channel_message(self, update: UpdateNewChannelMessage):
