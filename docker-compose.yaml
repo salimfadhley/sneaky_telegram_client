@@ -13,15 +13,15 @@ services:
     - "/tmp/.tdlib_files/:/tmp/.tdlib_files/"
     - "./storage:/storage"
     - "session:/session"
+    - "content:/content"
     entrypoint: run_client
-    env_file:
-      - .environment
     environment:
       SESSION_LOCATION: "/session"
       STORAGE_LOCATION: "/storage"
     links:
       - elastic
       - kibana
+      - nginx
     networks:
       - internal
 
@@ -37,8 +37,7 @@ services:
       - "/tmp/.tdlib_files/:/tmp/.tdlib_files/"
       - "./storage:/storage"
       - "session:/session"
-    env_file:
-      - .environment
+      - "content:/content"
     environment:
       SESSION_LOCATION: "/session"
     networks:
@@ -48,6 +47,7 @@ services:
     links:
       - elastic
       - kibana
+      - nginx
 
   elastic:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
@@ -81,6 +81,16 @@ services:
     - "5601:5601"
     links:
       - elastic
+  nginx:
+    container_name: nginx
+    image: nginx
+    volumes:
+      - "content:/usr/share/nginx/html:ro"
+    ports:
+      - "8080:80"
+    environment:
+      - NGINX_HOST=web.whatareyougetting.at
+
 
 networks:
   internal:
@@ -89,3 +99,4 @@ volumes:
   session:
   elastic_data:
   kibana:
+  content:

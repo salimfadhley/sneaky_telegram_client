@@ -7,7 +7,7 @@ import elasticsearch
 
 from telethon.tl.types import UpdateNewChannelMessage, Channel, User
 
-from sneaky_client.message_digest import create_digest, UpdateDigest
+from sneaky_client.digest.digest import UpdateDigest
 
 log = logging.getLogger(__name__)
 

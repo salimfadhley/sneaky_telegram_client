@@ -1,14 +1,14 @@
 import functools
 import logging
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
+from pathlib import Path
 
 from telethon.errors import InviteHashInvalidError, FloodWaitError
 from telethon.tl.functions.channels import JoinChannelRequest
 from telethon.tl.functions.messages import ImportChatInviteRequest
-from telethon.tl.types import UpdateNewChannelMessage, Channel, User, InputChannel
+from telethon.tl.types import UpdateNewChannelMessage, Channel, User, MessageMediaPhoto
 
-from sneaky_client.message_digest import create_digest
+from sneaky_client.digest.digest import create_digest
 from sneaky_client.storage import store
 
 log = logging.getLogger(__name__)
@@ -51,12 +51,24 @@ class TelegramHandler:
         except FloodWaitError:
             log.warning("Wait more time.")
 
+    async def process_photo(self, update: UpdateNewChannelMessage):
+        media: MessageMediaPhoto = update.message.media
+        file_path: str = f"/content/photos/{media.photo.id}.jpg"
+
+        if not os.path.exists(file_path):
+            with open(file_path, "wb") as download_file:
+                await self.client.download_media(message=update.message, file=file_path)
+        log.info(f"Saved photo: {file_path}, {os.path.getsize(file_path)} bytes")
+
     async def handle_update_new_channel_message(self, update: UpdateNewChannelMessage):
         channel: Channel = await self.client.get_entity(update.message.chat_id)
 
-        try:
-            _user = await self.client.get_entity(update.message.sender_id)
-        except ValueError:
+        if update.message.sender_id:
+            try:
+                _user = await self.client.get_entity(update.message.sender_id)
+            except ValueError:
+                _user = None
+        else:
             _user = None
 
         user = _user if isinstance(_user, User) else None
@@ -68,6 +80,9 @@ class TelegramHandler:
             channel=channel,
             digest=digest,
         )
+
+        if update.message.media and isinstance(update.message.media, MessageMediaPhoto):
+            await self.process_photo(update)
 
         for entity in digest.entities:
             await self.join_group(entity)
