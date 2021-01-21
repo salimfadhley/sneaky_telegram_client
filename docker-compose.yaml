@@ -87,7 +87,7 @@ services:
       context: .
       target: sneaky_nginx
     volumes:
-      - "content:/usr/share/nginx/html:ro"
+      - "content:/usr/share/nginx/html/content:ro"
     ports:
       - "8080:80"
     environment:
