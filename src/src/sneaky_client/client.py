@@ -27,9 +27,8 @@ class TelegramHandler:
     async def handler(self, update):
         if isinstance(update, UpdateNewChannelMessage):
             await self.handle_update_new_channel_message(update)
-
         else:
-            log.info(f"Ignoring update: {update}")
+            log.debug(f"Ignoring update: {update}")
 
     @functools.lru_cache()
     async def join_group(self, entity):

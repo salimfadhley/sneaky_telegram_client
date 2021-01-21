@@ -8,3 +8,4 @@ flask
 elasticsearch
 unidecode
 pre-commit
+pika==1.1.0

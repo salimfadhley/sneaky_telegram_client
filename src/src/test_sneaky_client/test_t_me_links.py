@@ -20,3 +20,9 @@ def test_extract2():
     )
     result = list(get_t_me_hashes(input_text))
     assert result == ["VGNrOwP_y0yQvAZs", "ANRnews"]
+
+
+def test_extract3():
+    input_text: str = "@foo @blah    https://t.me/joinchat/VGNrOwP_y0yQvAZs  https://t.me/ANRnews/27694 "
+    result = list(get_t_me_hashes(input_text))
+    assert result == ["VGNrOwP_y0yQvAZs", "ANRnews", "@foo", "@blah"]

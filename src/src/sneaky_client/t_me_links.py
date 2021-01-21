@@ -7,10 +7,11 @@ log = logging.getLogger(__name__)
 
 def get_t_me_hashes(inp: str) -> Iterator[str]:
     """Given some text that contans hashes, return an iterator of hashes"""
-    try:
-        matches = re.findall("(telegram.me|t.me)(\/joinchat)?\/([a-zA-Z0-9\-_]+)", inp)
-    except TypeError:
-        log.exception(f"Cannot get entity codes from {inp.__class__}: {inp}")
-        return iter([])
-    for match in matches:
+    if not isinstance(inp, str):
+        return []
+
+    for match in re.findall("(telegram.me|t.me)(\/joinchat)?\/([a-zA-Z0-9\-_]+)", inp):
         yield match[2]
+
+    for match in re.findall("(@[a-zA-Z0-9\-_]{3,})", inp):
+        yield match
