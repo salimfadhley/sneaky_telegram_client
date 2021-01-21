@@ -83,7 +83,9 @@ services:
       - elastic
   nginx:
     container_name: nginx
-    image: nginx
+    build:
+      context: .
+      target: sneaky_nginx
     volumes:
       - "content:/usr/share/nginx/html:ro"
     ports:

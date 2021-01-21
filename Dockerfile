@@ -5,3 +5,6 @@ RUN pip install -r /tmp/requirements.txt
 COPY src src
 WORKDIR /src
 RUN pip install -e .
+
+FROM nginx as sneaky_nginx
+COPY ./nginx/default.conf /etc/nginx/conf.d/
