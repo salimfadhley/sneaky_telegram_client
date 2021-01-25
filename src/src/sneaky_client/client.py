@@ -10,6 +10,7 @@ from telethon.tl.types import UpdateNewChannelMessage, Channel, User, MessageMed
 
 from sneaky_client.digest.digest import create_digest
 from sneaky_client.digest.photo_digest import PhotoDigest
+from sneaky_client.rabbit import EventQueue
 from sneaky_client.storage import store, store_photo_record
 
 log = logging.getLogger(__name__)
@@ -22,6 +23,7 @@ from telethon import TelegramClient
 @dataclass
 class TelegramHandler:
     client: TelegramClient
+    queue: EventQueue
 
     # This is our update handler. It is called when a new update arrives.
     async def handler(self, update):
@@ -63,7 +65,8 @@ class TelegramHandler:
             id=media.photo.id, access_hash=media.photo.access_hash
         )
 
-        store_photo_record(photo=photo_digest)
+        await self.queue.notify_photo(photo_digest=photo_digest)
+        await store_photo_record(photo=photo_digest)
 
         log.info(f"Saved photo: {file_path}, {os.path.getsize(file_path)} bytes")
 
@@ -113,10 +116,9 @@ def get_telegram_client() -> TelegramClient:
 
 def run_client():
     with get_telegram_client() as client:
-        tg_handler = TelegramHandler(client=client)
+        queue = EventQueue(loop=client.loop)
+        tg_handler = TelegramHandler(client=client, queue=queue)
 
         client.add_event_handler(tg_handler.handler)
-
-        # Run the client until Ctrl+C is pressed, or the client disconnects
         print("(Press Ctrl+C to stop this)")
         client.run_until_disconnected()

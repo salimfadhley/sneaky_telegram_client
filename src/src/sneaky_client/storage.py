@@ -30,7 +30,7 @@ def get_elasticsearch() -> elasticsearch.Elasticsearch:
     return elasticsearch.Elasticsearch([{"host": "elastic", "port": 9200}])
 
 
-def store_photo_record(photo: PhotoDigest):
+async def store_photo_record(photo: PhotoDigest):
     es = get_elasticsearch()
     es.index(
         index="photos", doc_type="photo", id=photo.id, body=dataclasses.asdict(photo)
