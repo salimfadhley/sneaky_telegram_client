@@ -13,9 +13,17 @@ from sneaky_client.digest.photo_digest import PhotoDigest
 log = logging.getLogger(__name__)
 
 
+def is_none_or_bytes(x):
+    if x is None:
+        return True
+    if isinstance(x, bytes):
+        return True
+    return False
+
+
 def remove_none(obj):
     if isinstance(obj, (list, tuple, set)):
-        return type(obj)(remove_none(x) for x in obj if x is not None)
+        return type(obj)(remove_none(x) for x in obj if is_none_or_bytes(x))
     elif isinstance(obj, dict):
         return type(obj)(
             (remove_none(k), remove_none(v))
@@ -33,7 +41,10 @@ def get_elasticsearch() -> elasticsearch.Elasticsearch:
 async def store_photo_record(photo: PhotoDigest):
     es = get_elasticsearch()
     es.index(
-        index="photos", doc_type="photo", id=photo.id, body=dataclasses.asdict(photo)
+        index="photos",
+        doc_type="photo",
+        id=photo.id,
+        body=remove_none(dataclasses.asdict(photo)),
     )
 
 

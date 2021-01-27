@@ -18,7 +18,7 @@ services:
     environment:
       SESSION_LOCATION: "/session"
       STORAGE_LOCATION: "/storage"
-    links:
+    depends_on:
       - elastic
       - kibana
       - nginx
@@ -45,7 +45,7 @@ services:
       - internal
     ports:
     - "8888:8888"
-    links:
+    depends_on:
       - elastic
       - kibana
       - nginx
@@ -81,7 +81,7 @@ services:
       - internal
     ports:
     - "5601:5601"
-    links:
+    depends_on:
       - elastic
   nginx:
     container_name: nginx

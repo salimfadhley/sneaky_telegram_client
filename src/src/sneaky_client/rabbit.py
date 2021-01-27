@@ -38,3 +38,5 @@ class EventQueue:
             routing_key=routing_key,
         )
         log.info(f"Notifying phtoto: {photo_digest}, got result {result}")
+
+        await channel.close()

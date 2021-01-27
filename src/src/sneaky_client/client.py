@@ -1,12 +1,18 @@
 import functools
 import logging
-from dataclasses import dataclass
-from pathlib import Path
+from dataclasses import dataclass, field
+from typing import List
 
 from telethon.errors import InviteHashInvalidError, FloodWaitError
 from telethon.tl.functions.channels import JoinChannelRequest
 from telethon.tl.functions.messages import ImportChatInviteRequest
-from telethon.tl.types import UpdateNewChannelMessage, Channel, User, MessageMediaPhoto
+from telethon.tl.types import (
+    UpdateNewChannelMessage,
+    Channel,
+    User,
+    MessageMediaPhoto,
+    UpdateChannelUserTyping,
+)
 
 from sneaky_client.digest.digest import create_digest
 from sneaky_client.digest.photo_digest import PhotoDigest
@@ -24,15 +30,17 @@ from telethon import TelegramClient
 class TelegramHandler:
     client: TelegramClient
     queue: EventQueue
+    joined: List[str] = field(default_factory=list)
 
     # This is our update handler. It is called when a new update arrives.
     async def handler(self, update):
         if isinstance(update, UpdateNewChannelMessage):
             await self.handle_update_new_channel_message(update)
+        elif isinstance(update, UpdateChannelUserTyping):
+            log.debug(f"Ignoring typing: {update}")
         else:
-            log.debug(f"Ignoring update: {update}")
+            log.info(f"Ignoring update: {update}.")
 
-    @functools.lru_cache()
     async def join_group(self, entity):
         """
         This looks bizarre, but I'm using lru_cache
@@ -40,26 +48,31 @@ class TelegramHandler:
         :return:
         """
         log.info(f"Trying to join group/chat/channel: {entity}...")
-        try:
-            log.info(f"{entity} is not a hash, trying to subscribe as a group")
-            channel: Channel = await self.client.get_entity(entity)
-            return await self.client(JoinChannelRequest(channel))  # type: ignore
-        except ValueError as e:
-            log.info(f"{entity} is not a username, it might be a hash...")
+        if entity in self.joined:
+            log.info(f"We have already subscribed to {entity}")
+        else:
             try:
-                return await self.client(ImportChatInviteRequest(entity))
-            except InviteHashInvalidError:
-                log.warning(f"Could not subscribe to {entity}")
-        except FloodWaitError:
-            log.warning("Wait more time.")
+                log.info(f"{entity} is not a hash, trying to subscribe as a group")
+                channel: Channel = await self.client.get_entity(entity)
+                await self.client(JoinChannelRequest(channel))  # type: ignore
+                self.joined.append(entity)
+                return
+            except ValueError as e:
+                log.info(f"{entity} is not a username, it might be a hash...")
+                try:
+                    await self.client(ImportChatInviteRequest(entity))
+                    self.joined.append(entity)
+                except InviteHashInvalidError:
+                    log.warning(f"Could not subscribe to {entity}")
+            except FloodWaitError:
+                log.warning("Wait more time.")
 
     async def process_photo(self, update: UpdateNewChannelMessage):
         media: MessageMediaPhoto = update.message.media
         file_path: str = f"/content/photos/{media.photo.id}.jpg"
 
         if not os.path.exists(file_path):
-            with open(file_path, "wb") as download_file:
-                await self.client.download_media(message=update.message, file=file_path)
+            await self.client.download_media(message=update.message, file=file_path)
 
         photo_digest: PhotoDigest = PhotoDigest(
             id=media.photo.id, access_hash=media.photo.access_hash
