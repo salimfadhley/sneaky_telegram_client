@@ -1,5 +1,5 @@
 FROM python:3.9-buster as py
-RUN pip install --upgrade pip setuptools
+RUN pip install --upgrade pip==21.0.1 setuptools
 COPY src/requirements.txt /tmp
 RUN pip install -r /tmp/requirements.txt
 COPY src src

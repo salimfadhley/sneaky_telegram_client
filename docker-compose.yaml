@@ -14,7 +14,7 @@ services:
     - "./storage:/storage"
     - "session:/session"
     - "content:/content"
-    entrypoint: run_client
+    entrypoint: python -m sneaky_client.telegram_client
     environment:
       SESSION_LOCATION: "/session"
       STORAGE_LOCATION: "/storage"
@@ -25,6 +25,7 @@ services:
       - rabbit
     networks:
       - internal
+    restart: always
 
   python:
     container_name: "python"

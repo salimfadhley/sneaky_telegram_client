@@ -43,7 +43,4 @@ setuptools.setup(
     ],
     python_requires=">=3.8",
     install_requires=REQUIREMENTS,
-    entry_points={
-        "console_scripts": ["run_telegram_client=sneaky_client.telegram_client:start"]
-    },
 )
