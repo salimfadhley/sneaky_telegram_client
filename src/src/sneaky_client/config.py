@@ -11,6 +11,8 @@ class Config:
     app_api_hash: str
     phone_number: str
     encryption_key: str
+    rollbar_id: str
+    rollbar_environment_name: str
 
 
 def get_confg_file_path() -> Path:
@@ -26,6 +28,7 @@ def get_config() -> Config:
         assert isinstance(config["app_api_hash"], str)
         assert isinstance(config["phone_number"], str)
         assert isinstance(config["encryption_key"], str)
+        assert isinstance(config["rollbar_id"], str)
 
         return Config(**config)
 

@@ -1,4 +1,3 @@
-import functools
 import logging
 from dataclasses import dataclass, field
 from typing import List
@@ -17,6 +16,10 @@ from telethon.tl.types import (
 from sneaky_client.digest.digest import create_digest
 from sneaky_client.digest.photo_digest import PhotoDigest
 from sneaky_client.rabbit import EventQueue
+from sneaky_client.rollbar_handler import (
+    initialize_rollbar,
+    exception_catching_decorator,
+)
 from sneaky_client.storage import store, store_photo_record
 
 log = logging.getLogger(__name__)
@@ -32,7 +35,7 @@ class TelegramHandler:
     queue: EventQueue
     joined: List[str] = field(default_factory=list)
 
-    # This is our update handler. It is called when a new update arrives.
+    @exception_catching_decorator()
     async def handler(self, update):
         if isinstance(update, UpdateNewChannelMessage):
             await self.handle_update_new_channel_message(update)
@@ -135,3 +138,23 @@ def run_client():
         client.add_event_handler(tg_handler.handler)
         print("(Press Ctrl+C to stop this)")
         client.run_until_disconnected()
+
+
+def ensure_directories_exist() -> None:
+    os.makedirs("/content/photos", exist_ok=True)
+
+
+def start():
+    logging.basicConfig()
+    logging.getLogger("").setLevel(logging.INFO)
+    log.info("Client starting")
+    ensure_directories_exist()
+    initialize_rollbar()
+    try:
+        run_client()
+    finally:
+        log.info("Client ending.")
+
+
+if __name__ == "__main__":
+    start()

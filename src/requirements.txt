@@ -6,3 +6,4 @@ flask
 elasticsearch
 unidecode
 pre-commit
+rollbar

@@ -4,7 +4,7 @@ from telethon.tl.functions.channels import JoinChannelRequest
 from telethon.tl.functions.messages import ImportChatInviteRequest
 from telethon.tl.types import Channel
 
-from sneaky_client.client import get_telegram_client
+from sneaky_client.telegram_client import get_telegram_client
 
 
 def get_query(client):

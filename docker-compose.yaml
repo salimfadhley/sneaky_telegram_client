@@ -1,7 +1,7 @@
 version: '3.7'
 
 services:
-  client:
+  telegram_client:
     container_name: "sneaky_telegram_client"
     image: "salimfadhley/sneaky-telegram-client:latest"
     build:
@@ -52,7 +52,9 @@ services:
       - rabbit
 
   elastic:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
+    build:
+      context: .
+      target: sneaky_elastic
     container_name: elastic
     environment:
       - node.name=es01
@@ -70,6 +72,9 @@ services:
       - 9300:9300
     networks:
       - internal
+#    healthcheck:
+#      test: curl -f -X GET "localhost:9200/_cluster/health?wait_for_status=green&timeout=1s" || exit 1
+#      interval: "30s"
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.10.2
