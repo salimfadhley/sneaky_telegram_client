@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import List
 
-from telethon.errors import InviteHashInvalidError, FloodWaitError
+from telethon.errors import InviteHashInvalidError, FloodWaitError, PeerIdInvalidError
 from telethon.tl.functions.channels import JoinChannelRequest
 from telethon.tl.functions.messages import ImportChatInviteRequest
 from telethon.tl.types import (
@@ -56,10 +56,16 @@ class TelegramHandler:
         else:
             try:
                 log.info(f"{entity} is not a hash, trying to subscribe as a group")
-                channel: Channel = await self.client.get_entity(entity)
+                try:
+                    channel: Channel = await self.client.get_entity(entity)
+                except PeerIdInvalidError:
+                    return
+                log.info(f"Attempting to join {channel}.")
                 await self.client(JoinChannelRequest(channel))  # type: ignore
                 self.joined.append(entity)
                 return
+            except TypeError as te:
+                print("xxxx")
             except ValueError as e:
                 log.info(f"{entity} is not a username, it might be a hash...")
                 try:

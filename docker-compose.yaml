@@ -73,9 +73,9 @@ services:
       - 9300:9300
     networks:
       - internal
-#    healthcheck:
-#      test: curl -f -X GET "localhost:9200/_cluster/health?wait_for_status=green&timeout=1s" || exit 1
-#      interval: "30s"
+    healthcheck:
+      test: curl -f -X GET "localhost:9200/_cluster/health?wait_for_status=green&timeout=1s" || exit 1
+      interval: "20s"
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.10.2

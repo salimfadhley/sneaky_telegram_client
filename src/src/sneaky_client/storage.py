@@ -21,14 +21,14 @@ def is_none_or_bytes(x):
     return False
 
 
-def remove_none(obj):
+def remove_none_and_binary(obj):
     if isinstance(obj, (list, tuple, set)):
-        return type(obj)(remove_none(x) for x in obj if is_none_or_bytes(x))
+        return type(obj)(remove_none_and_binary(x) for x in obj if is_none_or_bytes(x))
     elif isinstance(obj, dict):
         return type(obj)(
-            (remove_none(k), remove_none(v))
-            for k, v in obj.items()
-            if k is not None and v is not None
+            (remove_none_and_binary(k), remove_none_and_binary(v))
+            for (k, v) in obj.items()
+            if k is not None and not is_none_or_bytes(v)  # type: ignore
         )
     else:
         return obj
@@ -44,7 +44,7 @@ async def store_photo_record(photo: PhotoDigest):
         index="photos",
         doc_type="photo",
         id=photo.id,
-        body=remove_none(dataclasses.asdict(photo)),
+        body=remove_none_and_binary(dataclasses.asdict(photo)),
     )
 
 
@@ -66,22 +66,25 @@ def store(
         index="updates",
         doc_type="update",
         id=update_id,
-        body=remove_none(update_as_dict),
+        body=remove_none_and_binary(update_as_dict),
     )
     es.index(
         index="channels",
         doc_type="channel",
         id=channel.id,
-        body=remove_none(channel.to_dict()),
+        body=remove_none_and_binary(channel.to_dict()),
     )
     if user:
         es.index(
-            index="users", doc_type="user", id=user.id, body=remove_none(user.to_dict())
+            index="users",
+            doc_type="user",
+            id=user.id,
+            body=remove_none_and_binary(user.to_dict()),
         )
     else:
         log.info("No user data available for this update.")
 
-    digest_as_dict = remove_none(dataclasses.asdict(digest))
+    digest_as_dict = remove_none_and_binary(dataclasses.asdict(digest))
     log.info(f"Saving message: {pprint.pformat(digest_as_dict)}")
     es.index(index="digests", doc_type="digest", id=digest.id, body=digest_as_dict)
     log.info(f"Finished saving #{update_id}")
