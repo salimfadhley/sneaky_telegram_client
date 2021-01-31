@@ -1,11 +1,14 @@
 import dataclasses
+import functools
 import logging
 import pprint
+import time
 from typing import Optional
 
 import elasticsearch
 
 from telethon.tl.types import UpdateNewChannelMessage, Channel, User, Photo
+from elasticsearch.exceptions import ConnectionError
 
 from sneaky_client.digest.digest import UpdateDigest
 from sneaky_client.digest.photo_digest import PhotoDigest
@@ -34,8 +37,26 @@ def remove_none_and_binary(obj):
         return obj
 
 
+@functools.lru_cache()
 def get_elasticsearch() -> elasticsearch.Elasticsearch:
-    return elasticsearch.Elasticsearch([{"host": "elastic", "port": 9200}])
+    return wait_for_yellow_status(
+        elasticsearch.Elasticsearch([{"host": "elastic", "port": 9200}])
+    )
+
+
+def wait_for_yellow_status(
+    client: elasticsearch.Elasticsearch, nowait: bool = False, interval=5
+) -> elasticsearch.Elasticsearch:
+    for i in range(0, 1 if nowait else 100):
+        try:
+            client.cluster.health(wait_for_status="yellow")
+            return client
+        except ConnectionError:
+            log.info(f"Waited {i * interval} seconds for Elastic Search to be live.")
+            time.sleep(interval)
+    else:
+        # timeout
+        raise RuntimeError("Elasticsearch failed to start.")
 
 
 async def store_photo_record(photo: PhotoDigest):

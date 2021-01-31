@@ -20,7 +20,7 @@ from sneaky_client.rollbar_handler import (
     initialize_rollbar,
     exception_catching_decorator,
 )
-from sneaky_client.storage import store, store_photo_record
+from sneaky_client.storage import store, store_photo_record, wait_for_yellow_status
 
 log = logging.getLogger(__name__)
 
