@@ -4,6 +4,7 @@ import json
 import logging
 from asyncio import SelectorEventLoop
 from dataclasses import dataclass, asdict
+from typing import Optional
 
 import aio_pika
 from aio_pika import RobustConnection, RobustChannel
@@ -20,11 +21,14 @@ def encode_dataclass(d) -> bytes:
 @dataclass
 class EventQueue:
     loop: SelectorEventLoop
+    connection: Optional[RobustConnection] = None
 
     async def get_connection(self) -> RobustConnection:
-        return await aio_pika.connect_robust(
-            "amqp://guest:guest@rabbit/", loop=self.loop
-        )
+        if not self.connection:
+            self.connection = await aio_pika.connect_robust(
+                "amqp://rabbit/", loop=self.loop
+            )
+        return self.connection
 
     async def get_channel(self) -> RobustChannel:
         connection = await self.get_connection()
